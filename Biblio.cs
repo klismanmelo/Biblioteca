@@ -1,4 +1,6 @@
 using System;
+using System.Data.SqlClient;
+using MySql.Data.MySqlClient;
 
 
 namespace bibliote;
@@ -8,8 +10,10 @@ public class Biblio
     List<Livro> biblio = new List<Livro>();
     List<Pessoa> pessoas = new List<Pessoa>();
     
+    
     public void ExibirMenu()
     {
+        
         string escolha = "0";
         do
         {
@@ -32,7 +36,7 @@ public class Biblio
                     DevolucaoLivro(biblio,pessoas);
                     break;
                 case "4":
-                    AdicionarPessoa(pessoas);
+                    AdicionarPessoa();
                     break;
                 default:
                     Console.WriteLine("Número Inválido");
@@ -92,7 +96,7 @@ public class Biblio
             switch (escolhaAdicionar)
             {
                 case "sim":
-                    AdicionarPessoa(pessoas);
+                    AdicionarPessoa();
                     break;
                 case "nao":
                     break;
@@ -150,11 +154,36 @@ public class Biblio
     }
 
     
-    static void AdicionarPessoa(List<Pessoa> pessoas)
+    static void AdicionarPessoa()
     {
+        string connectionString = "Server=localhost;Database=biblioteca;User Id=root;Password=klis05melo;";
         Console.WriteLine("Adicionar o NOME da PESSOA: ");
         string nomePessoa = Console.ReadLine();
-        pessoas.Add(new Pessoa(nomePessoa));
+        Pessoa novaPessoa = new Pessoa(nomePessoa);
+        string query = "INSERT INTO Pessoa (Nome) VALUES (@Nome)";
+
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
+        {
+            // Cria o comando SQL
+            MySqlCommand command = new MySqlCommand(query, connection);
+                
+            // Adiciona parâmetros ao comando
+            command.Parameters.AddWithValue("@Nome", nomePessoa);
+            try
+            {
+                // Abre a conexão
+                connection.Open();
+
+                // Executa o comando
+                int rowsAffected = command.ExecuteNonQuery();
+                Console.WriteLine($"{rowsAffected} linha(s) inserida(s) com sucesso.");
+            }
+            catch (Exception ex)
+            {
+                // Exibe o erro, se houver
+                Console.WriteLine("Erro: " + ex.Message);
+            }
+        }
         Console.WriteLine("Pessoa ADICIONADA com sucesso!");
     }
     private void ListarPessoas(List<Pessoa> pessoas)
