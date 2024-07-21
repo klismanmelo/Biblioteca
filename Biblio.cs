@@ -27,7 +27,7 @@ public class Biblio
                     Console.WriteLine("Sair do Programa");
                     break;
                 case "1":
-                    AdicionarLivro(biblio);
+                    AdicionarLivro();
                     break;
                 case "2":
                     ReservarLivro(biblio,pessoas);
@@ -51,12 +51,31 @@ public class Biblio
         } while (escolha != "0");
     }
     
-    static void AdicionarLivro(List<Livro> biblio)
+    static void AdicionarLivro()
     {
-        Console.WriteLine("Digite o nome do Livro que deseja Adicionar: ");
+        string connectionString = "Server=localhost;Database=biblioteca;User Id=root;Password=klis05melo;";
+        Console.WriteLine("Adicionar o NOME da LIVRO: ");
         string nomeLivro = Console.ReadLine();
-        biblio.Add(new Livro(nomeLivro));
-        Console.WriteLine("Livro Adiionado com sucesso!!");
+        string query = "INSERT INTO Livro (Nome) VALUES (@Nome)";
+
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
+        {
+            MySqlCommand command = new MySqlCommand(query, connection);
+                
+            command.Parameters.AddWithValue("@Nome", nomeLivro);
+            try
+            {
+                connection.Open();
+
+                int rowsAffected = command.ExecuteNonQuery();
+                Console.WriteLine($"{rowsAffected} linha(s) inserida(s) com sucesso.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Erro: " + ex.Message);
+            }
+        }
+        Console.WriteLine("Pessoa ADICIONADA com sucesso!");
     }
     static void ReservarLivro(List<Livro> biblio, List<Pessoa> pessoas)
     {
@@ -141,15 +160,38 @@ public class Biblio
     }
     private void ListarLivros(List<Livro> biblio)
     {
-        if (this.biblio!= null)
+        string connectionString = "Server=localhost;Database=biblioteca;User Id=root;Password=klis05melo;";
+        string query = "SELECT Nome FROM Livro";
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
-            Console.WriteLine("Nenhum livro na biblioteca.");
-            return;
-        }
+            MySqlCommand command = new MySqlCommand(query, connection);
 
-        foreach (Livro livro in biblio)
-        {
-            Console.WriteLine(livro.name);
+            try
+            {
+                connection.Open();
+
+                using (MySqlDataReader reader = command.ExecuteReader())
+                {
+                    if (reader.HasRows)
+                    {
+                        while (reader.Read())
+                        {
+                            string nome = reader["Nome"].ToString();
+
+                            Console.WriteLine($"Nome: {nome}");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Nenhum registro encontrado.");
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
         }
     }
 
@@ -159,28 +201,22 @@ public class Biblio
         string connectionString = "Server=localhost;Database=biblioteca;User Id=root;Password=klis05melo;";
         Console.WriteLine("Adicionar o NOME da PESSOA: ");
         string nomePessoa = Console.ReadLine();
-        Pessoa novaPessoa = new Pessoa(nomePessoa);
         string query = "INSERT INTO Pessoa (Nome) VALUES (@Nome)";
 
         using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
-            // Cria o comando SQL
             MySqlCommand command = new MySqlCommand(query, connection);
                 
-            // Adiciona parâmetros ao comando
             command.Parameters.AddWithValue("@Nome", nomePessoa);
             try
             {
-                // Abre a conexão
                 connection.Open();
 
-                // Executa o comando
                 int rowsAffected = command.ExecuteNonQuery();
                 Console.WriteLine($"{rowsAffected} linha(s) inserida(s) com sucesso.");
             }
             catch (Exception ex)
             {
-                // Exibe o erro, se houver
                 Console.WriteLine("Erro: " + ex.Message);
             }
         }
@@ -196,23 +232,16 @@ public class Biblio
 
             try
             {
-                // Abre a conexão
                 connection.Open();
 
-                // Executa o comando e obtém um MySqlDataReader
                 using (MySqlDataReader reader = command.ExecuteReader())
                 {
-                    // Verifica se há registros
                     if (reader.HasRows)
                     {
-                        // Itera sobre os registros
                         while (reader.Read())
                         {
-                            // Acessa os valores das colunas
-                            // Supondo que a tabela tem colunas "Nome" e "Idade"
                             string nome = reader["Nome"].ToString();
 
-                            // Exibe os valores
                             Console.WriteLine($"Nome: {nome}");
                         }
                     }
