@@ -45,7 +45,7 @@ public class Biblio
                     ListarLivros(biblio);
                     break;
                 case "6":
-                    ListarPessoas(pessoas);
+                    ListarPessoas();
                     break;
             }
         } while (escolha != "0");
@@ -186,17 +186,47 @@ public class Biblio
         }
         Console.WriteLine("Pessoa ADICIONADA com sucesso!");
     }
-    private void ListarPessoas(List<Pessoa> pessoas)
+    private void ListarPessoas()
     {
-        if (pessoas.Count == 0)
+        string connectionString = "Server=localhost;Database=biblioteca;User Id=root;Password=klis05melo;";
+        string query = "SELECT Nome FROM Pessoa";
+        using (MySqlConnection connection = new MySqlConnection(connectionString))
         {
-            Console.WriteLine("Nenhuma pessoa cadastrada.");
-            return;
-        }
+            MySqlCommand command = new MySqlCommand(query, connection);
 
-        foreach (Pessoa pessoa in pessoas)
-        {
-            Console.WriteLine(pessoa.nome);
+            try
+            {
+                // Abre a conexão
+                connection.Open();
+
+                // Executa o comando e obtém um MySqlDataReader
+                using (MySqlDataReader reader = command.ExecuteReader())
+                {
+                    // Verifica se há registros
+                    if (reader.HasRows)
+                    {
+                        // Itera sobre os registros
+                        while (reader.Read())
+                        {
+                            // Acessa os valores das colunas
+                            // Supondo que a tabela tem colunas "Nome" e "Idade"
+                            string nome = reader["Nome"].ToString();
+
+                            // Exibe os valores
+                            Console.WriteLine($"Nome: {nome}");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Nenhum registro encontrado.");
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
         }
     }
 }
